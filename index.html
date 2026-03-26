@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الإبلاغ عن تصحيح</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: #f9fafb;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+    direction: rtl;
+  }
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 24px rgba(0,0,0,0.06);
+  }
+  h1 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #9ca3af; margin-bottom: 28px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #111827;
+    font-family: inherit;
+    outline: none;
+    margin-bottom: 18px;
+    transition: border-color 0.2s;
+    background: white;
+    direction: rtl;
+    text-align: right;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #6366f1; }
+  input:read-only { background: #f9fafb; color: #6b7280; }
+  .btn-submit {
+    width: 100%;
+    padding: 12px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    font-family: inherit;
+  }
+  .btn-submit:hover { opacity: 0.9; }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  #status {
+    margin-top: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    min-height: 20px;
+  }
+  .success { color: #22c55e; }
+  .error { color: #ef4444; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🚩 الإبلاغ عن تصحيح</h1>
+  <p class="subtitle">ساعدنا في تحسين مولّد الدروس</p>
+
+  <label>بريدك الإلكتروني</label>
+  <input type="email" id="email" readonly placeholder="يُحمَّل تلقائياً من الإضافة">
+
+  <label>عنوان الدرس</label>
+  <input type="text" id="lesson_title" placeholder="اكتب عنوان الدرس كما يظهر لك">
+
+  <label>ما الذي يحتاج تصحيحاً؟</label>
+  <select id="field">
+    <option value="">— اختر الحقل —</option>
+    <option value="student_book_pages">صفحات كتاب الطالب</option>
+    <option value="activity_book_pages">صفحات كتاب النشاط</option>
+    <option value="exercise_number">رقم التمرين أو السؤال</option>
+    <option value="unit_number">رقم الوحدة</option>
+    <option value="lesson_number">رقم الدرس</option>
+    <option value="semester">الفصل الدراسي</option>
+  </select>
+
+  <label>القيمة الخاطئة (ما ولّده الذكاء الاصطناعي)</label>
+  <input type="text" id="old_value" placeholder="مثال: صفحة 45">
+
+  <label>القيمة الصحيحة</label>
+  <input type="text" id="new_value" placeholder="مثال: صفحة 52">
+
+  <button class="btn-submit" id="submit-btn">إرسال التصحيح</button>
+  <div id="status"></div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://rznegxkfwwtqkytkoljs.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6bmVneGtmd3d0cWt5dGtvbGpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNTI3ODgsImV4cCI6MjA4NzgyODc4OH0.bc7hSJF9DUmoNG0k54vWge_tQ4fgGWLi_xEn8YXX5ug";
+
+const params = new URLSearchParams(window.location.search);
+const email = params.get("email") || "";
+const userId = params.get("user_id") || "";
+
+document.getElementById("email").value = email;
+
+function setStatus(msg, type) {
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.className = type;
+}
+
+document.getElementById("submit-btn").addEventListener("click", async () => {
+  const lessonTitle = document.getElementById("lesson_title").value.trim();
+  const field = document.getElementById("field").value;
+  const oldValue = document.getElementById("old_value").value.trim();
+  const newValue = document.getElementById("new_value").value.trim();
+
+  if (!email || !userId) {
+    setStatus("⚠ تعذّر التعرف على حسابك. يرجى فتح هذه الصفحة من خلال الإضافة.", "error");
+    return;
+  }
+  if (!lessonTitle) { setStatus("يرجى كتابة عنوان الدرس.", "error"); return; }
+  if (!field) { setStatus("يرجى اختيار الحقل الذي يحتاج تصحيحاً.", "error"); return; }
+  if (!newValue) { setStatus("يرجى كتابة القيمة الصحيحة.", "error"); return; }
+
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  btn.textContent = "جارٍ الإرسال...";
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/lesson_reports`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        lesson_id: lessonTitle,
+        field,
+        old_value: oldValue || null,
+        new_value: newValue
+      })
+    });
+
+    if (res.ok) {
+      setStatus("✓ تم إرسال التصحيح. شكراً لك!", "success");
+      btn.textContent = "تم الإرسال ✓";
+      document.getElementById("lesson_title").value = "";
+      document.getElementById("field").value = "";
+      document.getElementById("old_value").value = "";
+      document.getElementById("new_value").value = "";
+    } else {
+      const err = await res.json();
+      setStatus("خطأ: " + (err.message || "فشل الإرسال."), "error");
+      btn.disabled = false;
+      btn.textContent = "إرسال التصحيح";
+    }
+  } catch (e) {
+    setStatus("⚠ خطأ في الشبكة. يرجى المحاولة مرة أخرى.", "error");
+    btn.disabled = false;
+    btn.textContent = "إرسال التصحيح";
+  }
+});
+</script>
+</body>
+</html>
