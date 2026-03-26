@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الإبلاغ عن تصحيح</title>
+<title>الإبلاغ عن تعديل</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-family: 'Noto Kufi Arabic', sans-serif;
     background: #f9fafb;
     min-height: 100vh;
     display: flex;
@@ -55,7 +56,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.15s;
-    font-family: inherit;
+    font-family: 'Noto Kufi Arabic', sans-serif;
   }
   .btn-submit:hover { opacity: 0.9; }
   .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -72,8 +73,8 @@
 </head>
 <body>
 <div class="card">
-  <h1>🚩 الإبلاغ عن تصحيح</h1>
-  <p class="subtitle">ساعدنا في تحسين مولّد الدروس</p>
+  <h1>🚩 الإبلاغ عن تعديل</h1>
+  <p class="subtitle">ساعدنا في تحسين LMS Smart Lesson Planner</p>
 
   <label>بريدك الإلكتروني</label>
   <input type="email" id="email" readonly placeholder="يُحمَّل تلقائياً من الإضافة">
@@ -81,7 +82,7 @@
   <label>عنوان الدرس</label>
   <input type="text" id="lesson_title" placeholder="اكتب عنوان الدرس كما يظهر لك">
 
-  <label>ما الذي يحتاج تصحيحاً؟</label>
+  <label>ما الذي يحتاج تعديلا؟</label>
   <select id="field">
     <option value="">— اختر الحقل —</option>
     <option value="student_book_pages">صفحات كتاب الطالب</option>
@@ -98,7 +99,7 @@
   <label>القيمة الصحيحة</label>
   <input type="text" id="new_value" placeholder="مثال: صفحة 52">
 
-  <button class="btn-submit" id="submit-btn">إرسال التصحيح</button>
+  <button class="btn-submit" id="submit-btn">إرسال التعديل</button>
   <div id="status"></div>
 </div>
 
@@ -129,7 +130,7 @@ document.getElementById("submit-btn").addEventListener("click", async () => {
     return;
   }
   if (!lessonTitle) { setStatus("يرجى كتابة عنوان الدرس.", "error"); return; }
-  if (!field) { setStatus("يرجى اختيار الحقل الذي يحتاج تصحيحاً.", "error"); return; }
+  if (!field) { setStatus("يرجى اختيار الحقل الذي يحتاج تعديلا.", "error"); return; }
   if (!newValue) { setStatus("يرجى كتابة القيمة الصحيحة.", "error"); return; }
 
   const btn = document.getElementById("submit-btn");
@@ -155,7 +156,7 @@ document.getElementById("submit-btn").addEventListener("click", async () => {
     });
 
     if (res.ok) {
-      setStatus("✓ تم إرسال التصحيح. شكراً لك!", "success");
+      setStatus("✓ تم إرسال التعديل. شكراً لك!", "success");
       btn.textContent = "تم الإرسال ✓";
       document.getElementById("lesson_title").value = "";
       document.getElementById("field").value = "";
@@ -165,12 +166,12 @@ document.getElementById("submit-btn").addEventListener("click", async () => {
       const err = await res.json();
       setStatus("خطأ: " + (err.message || "فشل الإرسال."), "error");
       btn.disabled = false;
-      btn.textContent = "إرسال التصحيح";
+      btn.textContent = "إرسال التعديل";
     }
   } catch (e) {
     setStatus("⚠ خطأ في الشبكة. يرجى المحاولة مرة أخرى.", "error");
     btn.disabled = false;
-    btn.textContent = "إرسال التصحيح";
+    btn.textContent = "إرسال التعديل";
   }
 });
 </script>
