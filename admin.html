@@ -159,8 +159,6 @@
 </div>
 
 <script>
-const SUPABASE_URL = "https://rznegxkfwwtqkytkoljs.supabase.co";
-const SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6bmVneGtmd3d0cWt5dGtvbGpzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjI1Mjc4OCwiZXhwIjoyMDg3ODI4Nzg4fQ.lzv7U-VtXw9kBIcR1WHgfyCT3CqPw1x7oHYyiRe-EHs";
 const ADMIN_PASSWORD = "Ghostfiles@0812";
 
 const FIELD_LABELS = {
@@ -184,18 +182,14 @@ function login() {
 }
 
 async function supabase(method, path, body) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method,
-    headers: {
-      "apikey": SERVICE_KEY,
-      "Authorization": `Bearer ${SERVICE_KEY}`,
-      "Content-Type": "application/json",
-      "Prefer": method === "PATCH" ? "return=minimal" : "return=representation"
-    },
-    body: body ? JSON.stringify(body) : undefined
+  const res = await fetch("/api/admin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ method, path, body: body || null })
   });
-  if (method === "PATCH") return res.ok;
-  return res.json();
+  const data = await res.json();
+  if (method === "PATCH") return data.ok;
+  return data;
 }
 
 async function loadReports() {
