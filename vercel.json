@@ -1,0 +1,11 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)\\.xpi",
+      "headers": [
+        { "key": "Content-Type", "value": "application/x-xpinstall" },
+        { "key": "Content-Disposition", "value": "inline" }
+      ]
+    }
+  ]
+}
